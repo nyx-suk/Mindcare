@@ -4,17 +4,22 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { RootState } from '../store';
+import { RootStackParamList } from '../screens/WelcomeScreen';
+
+// Auth screens
+import WelcomeScreen from '../screens/WelcomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+
+// Main app screens
 import AssessmentScreen from '../screens/AssessmentScreen';
 import HistoryScreen from '../screens/HistoryScreen';
 import MoodScreen from '../screens/MoodScreen';
 import ResultsScreen from '../screens/ResultsScreen';
 
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
 
-// Stub Components for other screens
-const WelcomeScreen = () => <View style={styles.container}><Text>Welcome</Text></View>;
-const LoginScreen = () => <View style={styles.container}><Text>Login</Text></View>;
-const RegisterScreen = () => <View style={styles.container}><Text>Register</Text></View>;
+// Stub components kept for screens not yet fully built
 const DashboardScreen = ({ navigation }: any) => (
   <View style={styles.container}>
     <Text>Dashboard - Includes react-native-chart-kit</Text>
@@ -30,7 +35,7 @@ export default function AppNavigator() {
     <NavigationContainer>
       <Stack.Navigator
         screenOptions={{
-          headerStyle: { backgroundColor: '#e0f2f1' }, // Calming teal/green header
+          headerStyle: { backgroundColor: '#e0f2f1' },
           headerTintColor: '#004d40',
           headerTitleStyle: { fontWeight: 'bold' },
         }}
@@ -38,9 +43,13 @@ export default function AppNavigator() {
         {!isAuthenticated ? (
           // Auth Stack
           <>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Register" component={RegisterScreen} />
+            <Stack.Screen
+              name="Welcome"
+              component={WelcomeScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
           </>
         ) : (
           // Main Stack

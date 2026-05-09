@@ -1,5 +1,16 @@
 {
-  "plugins": [
-    "expo-localization"
-  ]
+  "expo": {
+    "name": "MentalHealthApp",
+    "slug": "mental-health-app",
+    "version": "1.0.0",
+    "android": {
+      "package": "com.nyxsuk.mindcare"
+    },
+    "ios": {
+      "bundleIdentifier": "com.nyxsuk.mindcare"
+    },
+    "plugins": [
+      "expo-localization"
+    ]
+  }
 }
