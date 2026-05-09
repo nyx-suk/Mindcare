@@ -1,0 +1,21 @@
+# Node / React Native
+node_modules/
+npm-debug.log
+yarn-error.log
+.expo/
+
+# Python / FastAPI
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Databases
+*.db
+*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db

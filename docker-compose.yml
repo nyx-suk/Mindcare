@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: mindcare_postgres
+    environment:
+      POSTGRES_USER: mindcare_user
+      POSTGRES_PASSWORD: mindcare_pass
+      POSTGRES_DB: mindcare_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - mindcare_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    image: python:3.11-slim
+    container_name: mindcare_backend
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://mindcare_user:mindcare_pass@postgres:5432/mindcare_db
+    depends_on:
+      - postgres
+    command: >
+      sh -c "pip install --no-cache-dir -r requirements.txt &&
+             python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload"
+    restart: unless-stopped
+
+volumes:
+  mindcare_data:
