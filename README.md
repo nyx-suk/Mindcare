@@ -73,7 +73,6 @@ This will automatically spin up:
 ```bash
 # In the root directory with your virtual environment activated:
 pip install -r requirements.txt
-cd MentalHealthApp
 uvicorn backend.main:app --reload
 ```
 
