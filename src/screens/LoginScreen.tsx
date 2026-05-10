@@ -76,12 +76,24 @@ export default function LoginScreen({ navigation }: Props) {
       console.log('Token dispatched:', token); // TODO: remove after debugging
       // AppNavigator watches isAuthenticated — no manual navigation needed
     } catch (error: any) {
-      if (error.response?.status === 401) {
-        setApiError('Incorrect email or password');
-      } else if (error.response) {
-        setApiError('Something went wrong. Please try again.');
-      } else {
+      if (error.response) {
+        // Server responded with an error status
+        const status = error.response.status;
+        if (status === 401) {
+          setApiError('Incorrect email or password');
+        } else {
+          setApiError('Something went wrong. Please try again.');
+        }
+      } else if (
+        error.code === 'ECONNABORTED' ||
+        error.code === 'ERR_NETWORK' ||
+        error.message === 'Network Error' ||
+        !error.response
+      ) {
+        // No response at all — server is down or unreachable
         setApiError('Network error. Please check your connection.');
+      } else {
+        setApiError('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);

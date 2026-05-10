@@ -103,13 +103,28 @@ export default function RegisterScreen({ navigation }: Props) {
       console.log('Token dispatched:', token); // TODO: remove after debugging
       // AppNavigator watches isAuthenticated — no manual navigation needed
     } catch (error: any) {
-      const detail: string = error.response?.data?.detail ?? '';
-      if (detail.toLowerCase().includes('already') || detail.toLowerCase().includes('exists')) {
-        setApiError('An account with this email already exists. Try signing in.');
-      } else if (error.response) {
-        setApiError('Registration failed. Please try again.');
-      } else {
+      if (error.response) {
+        // Server responded with an error status
+        const status = error.response.status;
+        if (
+          status === 400 &&
+          (error.response.data?.detail?.toLowerCase().includes('already') ||
+            error.response.data?.detail?.toLowerCase().includes('exists'))
+        ) {
+          setApiError('An account with this email already exists. Try signing in.');
+        } else {
+          setApiError('Registration failed. Please try again.');
+        }
+      } else if (
+        error.code === 'ECONNABORTED' ||
+        error.code === 'ERR_NETWORK' ||
+        error.message === 'Network Error' ||
+        !error.response
+      ) {
+        // No response at all — server is down or unreachable
         setApiError('Network error. Please check your connection.');
+      } else {
+        setApiError('An unexpected error occurred. Please try again.');
       }
     } finally {
       setIsLoading(false);

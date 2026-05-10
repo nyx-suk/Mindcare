@@ -20,11 +20,16 @@ export const loadSecureToken = createAsyncThunk(
   'auth/loadSecureToken',
   async () => {
     try {
-      const credentials = await Keychain.getGenericPassword();
+      // Race against a 3-second timeout — Keychain can hang on emulators
+      const keychainPromise = Keychain.getGenericPassword();
+      const timeoutPromise = new Promise<false>((resolve) =>
+        setTimeout(() => resolve(false), 3000)
+      );
+      const credentials = await Promise.race([keychainPromise, timeoutPromise]);
       if (credentials) {
         return {
-          userId: parseInt(credentials.username, 10),
-          token: credentials.password,
+          userId: parseInt((credentials as Keychain.UserCredentials).username, 10),
+          token: (credentials as Keychain.UserCredentials).password,
         };
       }
     } catch (e) {
@@ -73,6 +78,10 @@ export const authSlice = createSlice({
           state.userId = action.payload.userId;
           state.isAuthenticated = true;
         }
+      })
+      .addCase(loadSecureToken.rejected, (state) => {
+        // Thunk failed for any reason — stop loading and show auth stack
+        state.loading = false;
       })
       .addCase(setSecureCredentials.fulfilled, (state, action) => {
         state.token = action.payload.token;

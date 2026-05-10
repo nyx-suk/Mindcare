@@ -44,7 +44,7 @@ def test_ml_classify_endpoint(monkeypatch):
 
         assert response.status_code == 200
         payload = response.json()
-        assert payload["label"] == "Low risk"
+        assert payload["label"] == "Low concern"
         assert payload["confidence"] == 0.99
     finally:
         db.delete(user)
