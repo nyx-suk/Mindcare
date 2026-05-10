@@ -1,10 +1,11 @@
 fastapi
 sqlalchemy
-psycopg2-binary
+psycopg2-binary>=2.9.0
 passlib[bcrypt]
 pydantic
 PyJWT
 uvicorn
+gunicorn>=21.0.0
 pytest
 httpx
 pytest-asyncio
