@@ -100,6 +100,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
       const { token, userId } = response.data;
       await dispatch(setSecureCredentials({ token, userId }));
+      console.log('Token dispatched:', token); // TODO: remove after debugging
       // AppNavigator watches isAuthenticated — no manual navigation needed
     } catch (error: any) {
       const detail: string = error.response?.data?.detail ?? '';
@@ -129,9 +130,15 @@ export default function RegisterScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
+          <View style={styles.backButtonWrapper}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Welcome')}
+              style={styles.backButton}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.headline}>Create account</Text>
           <Text style={styles.subtitle}>Start your wellness journey</Text>
@@ -233,10 +240,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: SPACING.xl,
   },
+  backButtonWrapper: {
+    zIndex: 10,
+    alignSelf: 'flex-start',
+  },
   backButton: {
     alignSelf: 'flex-start',
-    paddingVertical: SPACING.xs,
-    paddingRight: SPACING.sm,
+    padding: SPACING.sm,
   },
   backArrow: {
     fontSize: 24,

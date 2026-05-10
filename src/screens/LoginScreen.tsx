@@ -71,10 +71,9 @@ export default function LoginScreen({ navigation }: Props) {
         password,
       });
 
-      const { access_token, user_id } = response.data;
-      await dispatch(
-        setSecureCredentials({ token: access_token, userId: user_id })
-      );
+      const { token, userId } = response.data;
+      await dispatch(setSecureCredentials({ token, userId }));
+      console.log('Token dispatched:', token); // TODO: remove after debugging
       // AppNavigator watches isAuthenticated — no manual navigation needed
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -101,9 +100,15 @@ export default function LoginScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backArrow}>←</Text>
-          </TouchableOpacity>
+          <View style={styles.backButtonWrapper}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Welcome')}
+              style={styles.backButton}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.headline}>Welcome back</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
@@ -172,11 +177,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: SPACING.xl,
   },
+  backButtonWrapper: {
+    zIndex: 10,
+    alignSelf: 'flex-start',
+  },
   backButton: {
     alignSelf: 'flex-start',
-    paddingVertical: SPACING.xs,
-    paddingRight: SPACING.sm,
+    padding: SPACING.sm,
   },
+
   backArrow: {
     fontSize: 24,
     color: COLORS.primary,

@@ -19,13 +19,16 @@ const initialState: AuthState = {
 export const loadSecureToken = createAsyncThunk(
   'auth/loadSecureToken',
   async () => {
-    const credentials = await Keychain.getGenericPassword();
-    if (credentials) {
-      // Assuming keychain username stores userId and password stores token
-      return { 
-        userId: parseInt(credentials.username, 10), 
-        token: credentials.password 
-      };
+    try {
+      const credentials = await Keychain.getGenericPassword();
+      if (credentials) {
+        return {
+          userId: parseInt(credentials.username, 10),
+          token: credentials.password,
+        };
+      }
+    } catch (e) {
+      // Keychain unavailable (emulator without secure enclave) — silent fail
     }
     return null;
   }
@@ -35,8 +38,11 @@ export const loadSecureToken = createAsyncThunk(
 export const setSecureCredentials = createAsyncThunk(
   'auth/setSecureCredentials',
   async (payload: { token: string; userId: number }) => {
-    // Saves userId as username and token as password in iOS Keychain / Android Keystore
-    await Keychain.setGenericPassword(payload.userId.toString(), payload.token);
+    try {
+      await Keychain.setGenericPassword(payload.userId.toString(), payload.token);
+    } catch (e) {
+      // Keychain unavailable on emulator — continue anyway, state is still set
+    }
     return payload;
   }
 );
@@ -45,7 +51,11 @@ export const setSecureCredentials = createAsyncThunk(
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async () => {
-    await Keychain.resetGenericPassword();
+    try {
+      await Keychain.resetGenericPassword();
+    } catch (e) {
+      // Keychain unavailable — continue
+    }
     return null;
   }
 );
