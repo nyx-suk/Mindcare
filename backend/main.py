@@ -16,7 +16,9 @@ import os
 from contextlib import asynccontextmanager
 
 # Database config
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://mindcare_user:mindcare_pass@localhost:5432/mindcare_db")
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL is None:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -30,8 +32,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 security = HTTPBearer()
 
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+
 # Security Configs
-SECRET_KEY = os.environ.get("SECRET_KEY", "your_super_secure_32_byte_secret_key_here_change_in_production_12345678901234567890123456789012")  # Updated for security
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if SECRET_KEY is None:
+    raise RuntimeError("SECRET_KEY environment variable is not set")
 ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")  # Changed from bcrypt to pbkdf2
 
