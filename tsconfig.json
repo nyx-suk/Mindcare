@@ -25,6 +25,5 @@
   "include": [
     "src/**/*",
     "App.tsx"
-  ],
-  "extends": "expo/tsconfig.base.json"
+  ]
 }

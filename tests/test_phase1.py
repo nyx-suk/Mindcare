@@ -1,15 +1,17 @@
 import pytest
 import pytest_asyncio
 import httpx
+from httpx import ASGITransport
 import jwt
 from sqlalchemy.orm import sessionmaker
 from backend.models import Base, User, Assessment
-from backend.main import engine
+from backend.main import engine, app, SECRET_KEY, ALGORITHM
 import os
 
 # Test data
 TEST_EMAIL = "test@example.com"
 TEST_PASSWORD = "testpass123"
+
 
 @pytest.fixture(scope="session")
 def db_session():
@@ -18,6 +20,7 @@ def db_session():
     session = SessionLocal()
     yield session
     session.close()
+
 
 @pytest_asyncio.fixture(scope="module", autouse=True)
 async def cleanup_test_user():
@@ -51,9 +54,12 @@ async def cleanup_test_user():
     # Post-test cleanup
     perform_cleanup()
 
+
 @pytest.mark.asyncio
 async def test_register():
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         response = await client.post("/auth/register", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
         assert response.status_code == 200
         data = response.json()
@@ -61,12 +67,15 @@ async def test_register():
         assert "userId" in data
         # Verify JWT
         token = data["token"]
-        payload = jwt.decode(token, "your_super_secure_32_byte_secret_key_here_change_in_production_12345678901234567890123456789012", algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         assert payload["sub"] == str(data["userId"])
+
 
 @pytest.mark.asyncio
 async def test_login():
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         response = await client.post("/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
         assert response.status_code == 200
         data = response.json()
@@ -74,12 +83,15 @@ async def test_login():
         assert "userId" in data
         # Verify JWT
         token = data["token"]
-        payload = jwt.decode(token, "your_super_secure_32_byte_secret_key_here_change_in_production_12345678901234567890123456789012", algorithms=["HS256"])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         assert payload["sub"] == str(data["userId"])
+
 
 @pytest.mark.asyncio
 async def test_get_questions():
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         # First login to get token
         login_response = await client.post("/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
         token = login_response.json()["token"]
@@ -101,9 +113,12 @@ async def test_get_questions():
                 assert "label" in option
                 assert "value" in option
 
+
 @pytest.mark.asyncio
 async def test_submit_assessment():
-    async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         # First login to get token
         login_response = await client.post("/auth/login", json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
         token = login_response.json()["token"]
@@ -113,24 +128,3 @@ async def test_submit_assessment():
         data = response.json()
         assert "message" in data
         assert "assessment_id" in data
-
-# Note: Scoring logic test is skipped as it requires importing TypeScript from src/services/scoring.ts
-# This would need Jest for JavaScript/TypeScript testing instead of pytest.
-# @pytest.mark.parametrize("answers,expected", [
-#     ([{"questionId": "phq1", "value": 3}, ...], {"depression": 3, "anxiety": 0}),
-#     ...
-# ])
-# def test_compute_scores(answers, expected):
-#     from src.services.scoring import computeScores
-#     questions = [...]  # Mock questions
-#     result = computeScores(answers, questions)
-#     assert result == expected
-
-# @pytest.mark.parametrize("score,category,expected", [
-#     (5, "depression", "Mild"),
-#     ...
-# ])
-# def test_get_severity_label(score, category, expected):
-#     from src.services.scoring import getSeverityLabel
-#     result = getSeverityLabel(score, category)
-#     assert result == expected
