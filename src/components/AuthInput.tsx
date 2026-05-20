@@ -1,6 +1,7 @@
 import React, { useState, forwardRef } from 'react';
 import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
-import { COLORS, SPACING, RADIUS } from '../theme/colors';
+import { SPACING, RADIUS, AppTheme } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
 
 export type AuthInputProps = {
   label: string;
@@ -14,6 +15,8 @@ const AuthInput = forwardRef<TextInput, AuthInputProps>(function AuthInput(
   { label, value, onChangeText, error = null, placeholder, onFocus, onBlur, ...rest },
   ref
 ) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const [isFocused, setIsFocused] = useState(false);
 
   const handleFocus = (e: any) => {
@@ -26,15 +29,14 @@ const AuthInput = forwardRef<TextInput, AuthInputProps>(function AuthInput(
     if (onBlur) onBlur(e);
   };
 
-  // Border logic priority: 1. Error, 2. Focused, 3. Default
-  let borderColor = COLORS.border;
+  let borderColor = theme.border;
   let borderWidth = 1.5;
 
   if (error) {
-    borderColor = COLORS.error;
+    borderColor = theme.error;
     borderWidth = 2;
   } else if (isFocused) {
-    borderColor = COLORS.borderFocus;
+    borderColor = theme.borderFocus;
     borderWidth = 2;
   }
 
@@ -47,7 +49,7 @@ const AuthInput = forwardRef<TextInput, AuthInputProps>(function AuthInput(
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={COLORS.textSecondary}
+        placeholderTextColor={theme.textHint}
         onFocus={handleFocus}
         onBlur={handleBlur}
         autoCapitalize="none"
@@ -62,7 +64,7 @@ const AuthInput = forwardRef<TextInput, AuthInputProps>(function AuthInput(
 
 export default AuthInput;
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) => StyleSheet.create({
   container: {
     width: '100%',
     marginBottom: SPACING.md,
@@ -70,19 +72,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '500',
-    color: COLORS.textSecondary,
+    color: theme.textSecondary,
     marginBottom: SPACING.xs,
   },
   input: {
-    backgroundColor: COLORS.card,
+    backgroundColor: theme.surface,
     borderRadius: RADIUS.input,
     padding: SPACING.md,
     fontSize: 15,
-    color: COLORS.textPrimary,
+    color: theme.textPrimary,
   },
   errorText: {
     fontSize: 12,
-    color: COLORS.error,
+    color: theme.error,
     marginTop: SPACING.xs,
   },
 });

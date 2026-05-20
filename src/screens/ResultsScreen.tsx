@@ -1,23 +1,30 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, TouchableOpacity, Modal, Linking, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Localization from 'expo-localization';
 import { useSelector } from 'react-redux';
+import { Ionicons } from '@expo/vector-icons';
+
 import { RootState } from '../store';
-import { BarChart } from 'react-native-chart-kit';
 import { checkHighRisk, getCategoryMessage, getSeverityLabel } from '../services/scoring';
 import { helplines, Helpline } from '../config/crisisHelplines';
+import { useTheme } from '../hooks/useTheme';
+import { SPACING } from '../theme/colors';
+
+import ScoreRing from '../components/ScoreRing';
 import OfflineBanner from '../components/OfflineBanner';
 import LoadingButton from '../components/LoadingButton';
-
-const screenWidth = Dimensions.get('window').width;
+import PrimaryButton from '../components/PrimaryButton';
 
 export default function ResultsScreen({ navigation, route }: any) {
+  const { theme } = useTheme();
   const latestScore = useSelector((state: RootState) => state.assessments.latestScore);
   const mlResult = route?.params?.mlResult;
   const [modalVisible, setModalVisible] = useState(false);
   const [showOtherCountries, setShowOtherCountries] = useState(false);
 
-  const countryCode = (Localization.region || 'GLOBAL').toUpperCase();
+  const locale = Localization.getLocales()?.[0];
+  const countryCode = (locale?.regionCode || 'GLOBAL').toUpperCase();
   const primaryHelplines = helplines[countryCode] || helplines["DEFAULT"];
 
   const openCrisisModal = () => {
@@ -40,124 +47,271 @@ export default function ResultsScreen({ navigation, route }: any) {
     lines,
   }));
 
+  const styles = StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    centered: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: SPACING.lg,
+    },
+    // Header
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: SPACING.xl,
+      paddingTop: SPACING.lg,
+      paddingBottom: SPACING.md,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: theme.textPrimary,
+    },
+    headerDate: {
+      fontSize: 12,
+      color: theme.textSecondary,
+    },
+    // Score Rings
+    scoreRingsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-evenly',
+      marginVertical: SPACING.xl,
+    },
+    // Recommendations
+    recommendationsContainer: {
+      paddingHorizontal: SPACING.md,
+      marginBottom: SPACING.xl,
+      gap: SPACING.md,
+    },
+    recCardDepression: {
+      backgroundColor: theme.surface,
+      borderLeftWidth: 3,
+      borderLeftColor: theme.warning,
+      borderTopLeftRadius: 0,
+      borderBottomLeftRadius: 0,
+      borderTopRightRadius: 12,
+      borderBottomRightRadius: 12,
+      padding: SPACING.lg,
+      shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+    },
+    recCardAnxiety: {
+      backgroundColor: theme.surface,
+      borderLeftWidth: 3,
+      borderLeftColor: theme.primaryLight,
+      borderTopLeftRadius: 0,
+      borderBottomLeftRadius: 0,
+      borderTopRightRadius: 12,
+      borderBottomRightRadius: 12,
+      padding: SPACING.lg,
+      shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, elevation: 2,
+    },
+    recLabel: {
+      fontSize: 11,
+      textTransform: 'uppercase',
+      color: theme.textHint,
+      fontWeight: '600',
+      marginBottom: 6,
+    },
+    recText: {
+      fontSize: 13,
+      color: theme.textPrimary,
+      lineHeight: 20,
+    },
+    // AI Insight
+    aiCard: {
+      backgroundColor: 'rgba(0,137,123,0.1)',
+      borderWidth: 0.5,
+      borderColor: theme.primary,
+      borderRadius: 12,
+      padding: SPACING.md,
+      marginHorizontal: SPACING.md,
+      marginBottom: SPACING.xl,
+    },
+    aiHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: SPACING.sm,
+      gap: 6,
+    },
+    aiLabelText: {
+      fontSize: 12,
+      color: theme.primaryLight,
+      fontWeight: '600',
+    },
+    aiContentRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      marginBottom: SPACING.sm,
+    },
+    aiResultText: {
+      fontSize: 14,
+      color: theme.textPrimary,
+      flex: 1,
+    },
+    aiConfidenceText: {
+      fontSize: 11,
+      color: theme.textSecondary,
+    },
+    aiDisclaimer: {
+      fontSize: 10,
+      color: theme.textHint,
+      fontStyle: 'italic',
+    },
+    // Crisis Button
+    crisisWrapper: {
+      paddingHorizontal: SPACING.md,
+      marginBottom: SPACING.lg,
+    },
+    crisisButtonContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.error,
+      borderRadius: 12,
+      padding: SPACING.lg,
+      width: '100%',
+      gap: 10,
+    },
+    crisisButtonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    dashboardNavWrap: {
+      paddingHorizontal: SPACING.md,
+      marginBottom: SPACING.xxl,
+    },
+    // Legacy Modal (restyled to theme)
+    modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
+    modalContent: { backgroundColor: theme.surface, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: theme.border, maxHeight: '90%' },
+    modalHeader: { backgroundColor: theme.error, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    modalTitle: { fontSize: 20, fontWeight: '700', color: '#fff' },
+    modalCloseButton: { padding: 4 },
+    modalCloseText: { color: '#fff', fontWeight: '700', fontSize: 18 },
+    modalBody: { padding: 20 },
+    helplineCard: { backgroundColor: theme.background, borderRadius: 14, padding: 18, borderWidth: 1, borderColor: theme.errorSurface, marginBottom: 16 },
+    helplineName: { fontSize: 18, fontWeight: '700', color: theme.error, marginBottom: 6 },
+    helplineDesc: { fontSize: 14, color: theme.textSecondary, marginBottom: 12 },
+    callButton: { backgroundColor: theme.error, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+    callButtonText: { color: '#fff', fontWeight: 'bold' },
+    otherButton: { alignItems: 'center', paddingVertical: 12 },
+    otherButtonText: { color: theme.primary, fontWeight: '700' },
+    countryList: { maxHeight: 240, marginVertical: 10 },
+    countryGroup: { marginBottom: 16 },
+    countryGroupName: { fontSize: 16, fontWeight: 'bold', color: theme.textPrimary, marginBottom: 8 },
+    countryItem: { flexDirection: 'row', backgroundColor: theme.background, borderRadius: 12, padding: 16, borderWidth: 1, borderColor: theme.border, marginBottom: 8, alignItems: 'center' },
+    countryName: { fontSize: 16, fontWeight: '700', color: theme.textPrimary, marginBottom: 4 },
+    countryDetails: { fontSize: 13, color: theme.textSecondary, marginBottom: 4 },
+    countryPhone: { fontSize: 15, fontWeight: '600', color: theme.primary },
+    inlineCallButton: { backgroundColor: theme.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, marginLeft: 10 },
+    inlineCallText: { color: '#fff', fontWeight: 'bold' },
+    footerText: { textAlign: 'center', color: theme.primary, fontWeight: '600', marginTop: 10 },
+  });
+
   if (!latestScore) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <SafeAreaView style={[styles.safeArea, styles.centered]}>
         <OfflineBanner />
-        <Text>No results found. Please take an assessment.</Text>
-        <LoadingButton 
-          label="Start Assessment" 
-          onPress={() => navigation.navigate('Assessment')} 
-          isLoading={false} 
-          style={styles.primaryButton} 
+        <Text style={{ color: theme.textPrimary }}>No results found. Please take an assessment.</Text>
+        <PrimaryButton
+          label="Start Assessment"
+          onPress={() => navigation.navigate('Assessment')}
         />
-      </View>
+      </SafeAreaView>
     );
   }
 
   const isHighRisk = checkHighRisk({ anxiety: latestScore.anxiety, depression: latestScore.depression }, latestScore.answers);
 
-  const getBarColor = (score: number, category: 'anxiety' | 'depression') => {
-    const severity = getSeverityLabel(score, category);
-    switch (severity) {
-      case 'Minimal': return '#4db6ac';
-      case 'Mild': return '#fff176';
-      case 'Moderate': return '#ffb74d';
-      case 'Moderately Severe':
-      case 'Severe': return '#ef5350';
-      default: return '#4db6ac';
-    }
-  };
-
-  const data = {
-    labels: ['Anxiety', 'Depression'],
-    datasets: [
-      {
-        data: [latestScore.anxiety, latestScore.depression]
-      }
-    ],
-    barColors: [getBarColor(latestScore.anxiety, 'anxiety'), getBarColor(latestScore.depression, 'depression')]
-  };
-
-  const chartConfig = {
-    backgroundGradientFrom: '#e0f2f1',
-    backgroundGradientTo: '#ffffff',
-    color: (opacity = 1) => `rgba(0, 137, 123, ${opacity})`,
-    strokeWidth: 2,
-    barPercentage: 0.7,
-    decimalPlaces: 0,
-    propsForLabels: {
-      fontSize: 14,
-      fontWeight: 'bold',
-    }
-  };
-
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-      <OfflineBanner />
-      <Text style={styles.title}>Your Assessment Results</Text>
-      
-      <View style={styles.chartContainer}>
-        <BarChart
-          data={data}
-          width={screenWidth - 48}
-          height={260}
-          yAxisLabel=""
-          yAxisSuffix=""
-          chartConfig={chartConfig}
-          verticalLabelRotation={0}
-          fromZero
-          showValuesOnTopOfBars
-          style={styles.chart}
-        />
-      </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <OfflineBanner />
 
-      <View style={styles.severityContainer}>
-        <Text style={[styles.severityText, { color: getBarColor(latestScore.anxiety, 'anxiety') }]}>
-          Anxiety: {getSeverityLabel(latestScore.anxiety, 'anxiety')}
-        </Text>
-        <Text style={[styles.severityText, { color: getBarColor(latestScore.depression, 'depression') }]}>
-          Depression: {getSeverityLabel(latestScore.depression, 'depression')}
-        </Text>
-      </View>
-
-      <View style={styles.breakdownContainer}>
-        <Text style={styles.sectionTitle}>Breakdown</Text>
-        
-        <View style={styles.categoryCard}>
-          <Text style={styles.categoryTitle}>Anxiety: {latestScore.anxiety}</Text>
-          <Text style={styles.categoryDesc}>{getCategoryMessage('anxiety', latestScore.anxiety)}</Text>
+        {/* ── HEADER ── */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}>
+            <Ionicons name="chevron-back" size={22} color={theme.textSecondary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Your Results</Text>
+          <Text style={styles.headerDate}>{new Date().toLocaleDateString()}</Text>
         </View>
-        <View style={styles.categoryCard}>
-          <Text style={styles.categoryTitle}>Depression: {latestScore.depression}</Text>
-          <Text style={styles.categoryDesc}>{getCategoryMessage('depression', latestScore.depression)}</Text>
-        </View>
-      </View>
 
-      {mlResult?.label && (
-        <View style={styles.aiContainer}>
-          <Text style={styles.aiTitle}>AI Insight</Text>
-          <Text style={styles.aiText}>
-            {mlResult.label} ({Math.round((mlResult.confidence ?? 0) * 100)}% confidence)
-          </Text>
-        </View>
-      )}
-
-      {isHighRisk && (
-        <View style={styles.crisisContainer}>
-          <Text style={styles.crisisWarning}>Important Warning</Text>
-          <Text style={styles.crisisText}>
-            Your results indicate severe levels of distress. You don't have to go through this alone.
-          </Text>
-          <LoadingButton 
-            label="Connect to Crisis Support"
-            onPress={openCrisisModal}
-            isLoading={false}
-            style={styles.crisisButton}
+        {/* ── SCORE RINGS ── */}
+        <View style={styles.scoreRingsRow}>
+          <ScoreRing
+            score={latestScore.depression}
+            maxScore={27}
+            color={theme.warning}
+            label="Depression"
+            severity={getSeverityLabel(latestScore.depression, 'depression')}
+            theme={theme}
+            size={120}
+          />
+          <ScoreRing
+            score={latestScore.anxiety}
+            maxScore={21}
+            color={theme.primaryLight}
+            label="Anxiety"
+            severity={getSeverityLabel(latestScore.anxiety, 'anxiety')}
+            theme={theme}
+            size={120}
           />
         </View>
-      )}
 
+        {/* ── RECOMMENDATIONS ── */}
+        <View style={styles.recommendationsContainer}>
+          <View style={styles.recCardDepression}>
+            <Text style={styles.recLabel}>Depression</Text>
+            <Text style={styles.recText}>{getCategoryMessage(latestScore.depression, 'depression')}</Text>
+          </View>
+          <View style={styles.recCardAnxiety}>
+            <Text style={styles.recLabel}>Anxiety</Text>
+            <Text style={styles.recText}>{getCategoryMessage(latestScore.anxiety, 'anxiety')}</Text>
+          </View>
+        </View>
+
+        {/* ── AI INSIGHT ── */}
+        {mlResult && mlResult.label !== 'Unavailable' && (
+          <View style={styles.aiCard}>
+            <View style={styles.aiHeaderRow}>
+              <Ionicons name="hardware-chip-outline" size={16} color={theme.primaryLight} />
+              <Text style={styles.aiLabelText}>AI Insight</Text>
+            </View>
+            <View style={styles.aiContentRow}>
+              <Text style={styles.aiResultText}>{mlResult.label}</Text>
+              <Text style={styles.aiConfidenceText}>{Math.round(mlResult.confidence * 100)}% conf</Text>
+            </View>
+            <Text style={styles.aiDisclaimer}>AI-assisted, not a clinical diagnosis</Text>
+          </View>
+        )}
+
+        {/* ── CRISIS BUTTON ── */}
+        {isHighRisk && (
+          <View style={styles.crisisWrapper}>
+            <TouchableOpacity style={styles.crisisButtonContent} onPress={openCrisisModal}>
+              <Ionicons name="call-outline" size={20} color="#fff" />
+              <Text style={styles.crisisButtonText}>Connect to Crisis Support</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.dashboardNavWrap}>
+          {/* @ts-ignore */}
+          <PrimaryButton
+            label="Return to Dashboard"
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+          />
+        </View>
+
+      </ScrollView>
+
+      {/* ── EXISTING CRISIS MODAL ── */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalBackdrop}>
           <View style={styles.modalContent}>
@@ -176,12 +330,9 @@ export default function ResultsScreen({ navigation, route }: any) {
                   <View style={styles.helplineCard}>
                     <Text style={styles.helplineName}>{item.name}</Text>
                     <Text style={styles.helplineDesc}>{item.description}</Text>
-                    <LoadingButton 
-                      label="Call Now" 
-                      onPress={() => dialNumber(item.number)}
-                      isLoading={false}
-                      style={styles.callButton}
-                    />
+                    <TouchableOpacity style={styles.callButton} onPress={() => dialNumber(item.number)}>
+                      <Text style={styles.callButtonText}>Call Now</Text>
+                    </TouchableOpacity>
                   </View>
                 )}
                 scrollEnabled={false}
@@ -222,264 +373,6 @@ export default function ResultsScreen({ navigation, route }: any) {
         </View>
       </Modal>
 
-      <LoadingButton 
-        label="Return to Dashboard" 
-        onPress={() => navigation.navigate('Dashboard')}
-        isLoading={false}
-        style={styles.primaryButton}
-      />
-    </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f1f8f6',
-  },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  scrollContent: {
-    padding: 24,
-    paddingBottom: 48,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#004d40',
-    marginBottom: 24,
-  },
-  chartContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    marginBottom: 32,
-    alignItems: 'center',
-  },
-  chart: {
-    borderRadius: 8,
-  },
-  severityContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
-  },
-  severityText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  breakdownContainer: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#263238',
-    marginBottom: 16,
-  },
-  categoryCard: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4db6ac',
-  },
-  categoryTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#00695c',
-    marginBottom: 4,
-  },
-  categoryDesc: {
-    fontSize: 14,
-    color: '#546e7a',
-    lineHeight: 20,
-  },
-  crisisContainer: {
-    backgroundColor: '#ffebee',
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ef9a9a',
-    marginBottom: 32,
-  },
-  crisisWarning: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#c62828',
-    marginBottom: 8,
-  },
-  crisisText: {
-    fontSize: 14,
-    color: '#b71c1c',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  crisisButton: {
-    backgroundColor: '#d32f2f',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  primaryButton: {
-    backgroundColor: '#00897b',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginVertical: 16,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  modalContent: {
-    backgroundColor: '#f1f8f6',
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#b2dfdb',
-    maxHeight: '90%',
-  },
-  modalHeader: {
-    backgroundColor: '#ef5350',
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ffffff',
-  },
-  modalCloseButton: {
-    padding: 4,
-  },
-  modalCloseText: {
-    color: '#ffffff',
-    fontWeight: '700',
-    fontSize: 18,
-  },
-  modalBody: {
-    padding: 20,
-  },
-  helplineCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#4db6ac',
-    marginBottom: 16,
-  },
-  helplineName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#00796b',
-    marginBottom: 6,
-  },
-  helplineDesc: {
-    fontSize: 14,
-    color: '#455a64',
-    marginBottom: 12,
-  },
-  callButton: {
-    backgroundColor: '#00796b',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  otherButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  otherButtonText: {
-    color: '#00695c',
-    fontWeight: '700',
-  },
-  countryList: {
-    maxHeight: 240,
-    marginVertical: 10,
-  },
-  countryGroup: {
-    marginBottom: 16,
-  },
-  countryGroupName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#004d40',
-    marginBottom: 8,
-  },
-  countryItem: {
-    flexDirection: 'row',
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#cfd8dc',
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  countryName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#004d40',
-    marginBottom: 4,
-  },
-  countryDetails: {
-    fontSize: 13,
-    color: '#546e7a',
-    marginBottom: 4,
-  },
-  countryPhone: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#00796b',
-  },
-  inlineCallButton: {
-    backgroundColor: '#00796b',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginLeft: 10,
-  },
-  inlineCallText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
-  footerText: {
-    textAlign: 'center',
-    color: '#00695c',
-    fontWeight: '600',
-    marginTop: 10,
-  },
-  aiContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#b2dfdb',
-    marginBottom: 24,
-  },
-  aiTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#00796b',
-    marginBottom: 8,
-  },
-  aiText: {
-    fontSize: 15,
-    color: '#455a64',
-    lineHeight: 22,
-  },
-});

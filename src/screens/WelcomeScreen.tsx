@@ -3,26 +3,16 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   Animated,
   Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackScreenProps } from '@react-navigation/stack';
-import { COLORS, SPACING, RADIUS } from '../theme/colors';
-
-export type RootStackParamList = {
-  Welcome: undefined;
-  Login: undefined;
-  Register: undefined;
-  Dashboard: undefined;
-  Assessment: undefined;
-  History: undefined;
-  Mood: undefined;
-  Results: undefined;
-  'Crisis Support': undefined;
-};
+import { SPACING, RADIUS, AppTheme } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 type Props = StackScreenProps<RootStackParamList, 'Welcome'>;
 
@@ -47,6 +37,9 @@ const animatedStyle = (anim: Animated.Value) => ({
 });
 
 export default function WelcomeScreen({ navigation }: Props) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
+
   const animAppName = useRef(new Animated.Value(0)).current;
   const animHero = useRef(new Animated.Value(0)).current;
   const animSubtitle = useRef(new Animated.Value(0)).current;
@@ -62,24 +55,20 @@ export default function WelcomeScreen({ navigation }: Props) {
   }, [animAppName, animHero, animSubtitle, animButtons]);
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       <LinearGradient
         colors={['#004d40', '#00897b']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       >
-        {/* Decorative background circle */}
         <View style={styles.decorativeCircle} pointerEvents="none" />
 
-        {/* Main content */}
         <View style={styles.content}>
-          {/* TOP — App name */}
           <Animated.View style={animatedStyle(animAppName)}>
             <Text style={styles.appName}>MindCare</Text>
           </Animated.View>
 
-          {/* MIDDLE — Hero headline + subtitle */}
           <View style={styles.middleSection}>
             <Animated.View style={animatedStyle(animHero)}>
               <Text style={styles.headline}>Your mental health, simplified.</Text>
@@ -91,7 +80,6 @@ export default function WelcomeScreen({ navigation }: Props) {
             </Animated.View>
           </View>
 
-          {/* BOTTOM — Buttons + footer */}
           <Animated.View style={animatedStyle(animButtons)}>
             <TouchableOpacity
               style={styles.primaryButton}
@@ -117,11 +105,11 @@ export default function WelcomeScreen({ navigation }: Props) {
           </Animated.View>
         </View>
       </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#004d40',
@@ -181,7 +169,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: theme.primary,
   },
   buttonGap: {
     height: SPACING.md,

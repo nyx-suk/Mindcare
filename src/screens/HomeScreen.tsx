@@ -22,7 +22,6 @@ interface MoodLog {
 
 export default function HomeScreen({ navigation }: Props) {
     const { theme } = useTheme();
-    const user = useSelector((state: RootState) => state.auth.user);
     const latestScore = useSelector((state: RootState) => state.assessments.latestScore);
 
     const [moodHistory, setMoodHistory] = useState<MoodLog[]>([]);
@@ -51,16 +50,8 @@ export default function HomeScreen({ navigation }: Props) {
     if (hour < 12) greeting = 'Good morning';
     else if (hour < 17) greeting = 'Good afternoon';
 
-    let firstName = 'Guest';
-    if (user) {
-        if ((user as any).name) {
-            firstName = (user as any).name;
-        } else if (user.email) {
-            const parts = user.email.split('@');
-            const namePart = parts[0];
-            firstName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
-        }
-    }
+    // Simplified generic fallback until JWT decoding API returns
+    let firstName = 'Welcome back';
 
     // Severity Logic
     const getSeverity = (score: number) => {
@@ -232,7 +223,7 @@ export default function HomeScreen({ navigation }: Props) {
                         <Text style={styles.greetingText}>{greeting},</Text>
                         <Text style={styles.nameText}>{firstName}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => console.log('Navigate to settings')}>
+                    <TouchableOpacity onPress={() => navigation.navigate('Settings' as any)}>
                         <Ionicons name="settings-outline" size={22} color={theme.textSecondary} />
                     </TouchableOpacity>
                 </View>

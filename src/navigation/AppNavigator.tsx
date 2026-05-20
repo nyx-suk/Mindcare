@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { RootState, AppDispatch } from '../store';
@@ -14,6 +14,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 // Main app screens
 import TabNavigator from './TabNavigator';
 import ResultsScreen from '../screens/ResultsScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 export type RootStackParamList = {
   // Auth
@@ -23,13 +24,16 @@ export type RootStackParamList = {
   // Main
   MainTabs: undefined;
   Results: undefined;
+  Settings: undefined;
 };
 
-const Stack = createStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const dispatch = useDispatch<AppDispatch>();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated && !!state.auth.token
+  );
   const loading = useSelector((state: RootState) => state.auth.loading);
 
   useEffect(() => {
@@ -50,9 +54,10 @@ export default function AppNavigator() {
         // ── Authenticated stack ──────────────────────────────────────────────
         <Stack.Navigator
           screenOptions={{
-            headerStyle: { backgroundColor: '#e0f2f1' },
-            headerTintColor: '#004d40',
-            headerTitleStyle: { fontWeight: 'bold' },
+            contentStyle: { backgroundColor: '#0f1923' },
+            headerStyle: { backgroundColor: '#0f1923' },
+            headerTintColor: '#4db6ac',
+            headerTitleStyle: { fontWeight: '600' },
           }}
         >
           <Stack.Screen
@@ -63,6 +68,12 @@ export default function AppNavigator() {
           <Stack.Screen
             name="Results"
             component={ResultsScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       ) : (

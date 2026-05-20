@@ -68,7 +68,17 @@ export const logoutUser = createAsyncThunk(
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+  reducers: {
+    setToken: (state, action: PayloadAction<string | null>) => {
+      state.token = action.payload;
+      state.isAuthenticated = !!action.payload;
+    },
+    logout: (state) => {
+      state.token = null;
+      state.userId = null;
+      state.isAuthenticated = false;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(loadSecureToken.fulfilled, (state, action) => {
@@ -77,11 +87,13 @@ export const authSlice = createSlice({
           state.token = action.payload.token;
           state.userId = action.payload.userId;
           state.isAuthenticated = true;
+        } else {
+          state.isAuthenticated = false;
         }
       })
       .addCase(loadSecureToken.rejected, (state) => {
-        // Thunk failed for any reason — stop loading and show auth stack
         state.loading = false;
+        state.isAuthenticated = false;
       })
       .addCase(setSecureCredentials.fulfilled, (state, action) => {
         state.token = action.payload.token;
@@ -96,4 +108,5 @@ export const authSlice = createSlice({
   },
 });
 
+export const { setToken, logout } = authSlice.actions;
 export default authSlice.reducer;

@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
   ViewStyle,
 } from 'react-native';
-import { COLORS, RADIUS } from '../theme/colors';
+import { RADIUS, AppTheme } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
 
 export type PrimaryButtonProps = {
   label: string;
@@ -26,6 +27,8 @@ export default function PrimaryButton({
   disabled = false,
   style,
 }: PrimaryButtonProps) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const scaleValue = useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
@@ -49,7 +52,7 @@ export default function PrimaryButton({
 
   const buttonStyle = isSolid ? styles.solidButton : styles.outlineButton;
   const textStyle = isSolid ? styles.solidText : styles.outlineText;
-  const indicatorColor = isSolid ? '#ffffff' : COLORS.primary;
+  const indicatorColor = isSolid ? '#ffffff' : theme.primary;
 
   return (
     <Animated.View style={[{ transform: [{ scale: scaleValue }] }, style]}>
@@ -75,7 +78,7 @@ export default function PrimaryButton({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) => StyleSheet.create({
   buttonBase: {
     height: 52,
     width: '100%',
@@ -85,12 +88,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   solidButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
   },
   outlineButton: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: theme.primary,
   },
   disabledButton: {
     opacity: 0.6,
@@ -103,6 +106,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   outlineText: {
-    color: COLORS.primary,
+    color: theme.primary,
   },
 });

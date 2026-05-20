@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
@@ -11,13 +10,15 @@ import {
   TextInput,
 } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import AuthInput from '../components/AuthInput';
 import PrimaryButton from '../components/PrimaryButton';
-import { COLORS, SPACING, RADIUS } from '../theme/colors';
+import { SPACING, RADIUS, AppTheme } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
 import { setSecureCredentials } from '../store/authSlice';
 import apiClient from '../api/client';
-import { RootStackParamList } from './WelcomeScreen';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { AppDispatch } from '../store';
 
 type Props = StackScreenProps<RootStackParamList, 'Register'>;
@@ -31,13 +32,9 @@ function getPasswordStrength(password: string): 0 | 1 | 2 | 3 {
   return 1;
 }
 
-const STRENGTH_COLORS: Record<1 | 2 | 3, string> = {
-  1: '#ef5350',
-  2: '#ffb74d',
-  3: '#4db6ac',
-};
-
 export default function RegisterScreen({ navigation }: Props) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const dispatch = useDispatch<AppDispatch>();
   const passwordRef = useRef<TextInput>(null);
   const confirmRef = useRef<TextInput>(null);
@@ -50,6 +47,12 @@ export default function RegisterScreen({ navigation }: Props) {
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const STRENGTH_COLORS: Record<1 | 2 | 3, string> = {
+    1: theme.error,
+    2: theme.warning,
+    3: theme.primary,
+  };
 
   const handleEmailChange = (text: string) => {
     setEmail(text);
@@ -100,11 +103,9 @@ export default function RegisterScreen({ navigation }: Props) {
 
       const { token, userId } = response.data;
       await dispatch(setSecureCredentials({ token, userId }));
-      console.log('Token dispatched:', token); // TODO: remove after debugging
-      // AppNavigator watches isAuthenticated — no manual navigation needed
+      console.log('Token dispatched:', token);
     } catch (error: any) {
       if (error.response) {
-        // Server responded with an error status
         const status = error.response.status;
         if (
           status === 400 &&
@@ -121,7 +122,6 @@ export default function RegisterScreen({ navigation }: Props) {
         error.message === 'Network Error' ||
         !error.response
       ) {
-        // No response at all — server is down or unreachable
         setApiError('Network error. Please check your connection.');
       } else {
         setApiError('An unexpected error occurred. Please try again.');
@@ -144,7 +144,6 @@ export default function RegisterScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
           <View style={styles.backButtonWrapper}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Welcome')}
@@ -158,7 +157,6 @@ export default function RegisterScreen({ navigation }: Props) {
           <Text style={styles.headline}>Create account</Text>
           <Text style={styles.subtitle}>Start your wellness journey</Text>
 
-          {/* Form */}
           <AuthInput
             label="Email"
             value={email}
@@ -184,7 +182,6 @@ export default function RegisterScreen({ navigation }: Props) {
             />
           </View>
 
-          {/* Password strength indicator */}
           <View style={styles.strengthRow}>
             {[1, 2, 3].map((bar) => (
               <View
@@ -196,7 +193,7 @@ export default function RegisterScreen({ navigation }: Props) {
                     backgroundColor:
                       strength >= bar && strength > 0
                         ? STRENGTH_COLORS[strength as 1 | 2 | 3]
-                        : COLORS.border,
+                        : theme.border,
                   },
                 ]}
               />
@@ -230,7 +227,6 @@ export default function RegisterScreen({ navigation }: Props) {
             </View>
           )}
 
-          {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -243,10 +239,10 @@ export default function RegisterScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
   },
   keyboardView: {
     flex: 1,
@@ -265,17 +261,17 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 24,
-    color: COLORS.primary,
+    color: theme.primary,
   },
   headline: {
     fontSize: 30,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: theme.textPrimary,
     marginTop: SPACING.lg,
   },
   subtitle: {
     fontSize: 15,
-    color: COLORS.textSecondary,
+    color: theme.textSecondary,
     marginTop: SPACING.xs,
     marginBottom: SPACING.xl,
   },
@@ -301,14 +297,14 @@ const styles = StyleSheet.create({
   },
   errorCard: {
     marginTop: SPACING.md,
-    backgroundColor: COLORS.errorSurface,
+    backgroundColor: theme.errorSurface,
     borderRadius: RADIUS.card,
     padding: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.error,
+    borderColor: theme.error,
   },
   errorCardText: {
-    color: COLORS.error,
+    color: theme.error,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -322,11 +318,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: theme.textSecondary,
   },
   footerLink: {
     fontSize: 14,
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: '600',
   },
 });

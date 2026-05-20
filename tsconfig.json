@@ -13,6 +13,7 @@
     "strict": true,
     "moduleResolution": "bundler",
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
@@ -24,6 +25,8 @@
   ],
   "include": [
     "src/**/*",
-    "App.tsx"
-  ]
+    "App.tsx",
+    "node_modules/@expo/vector-icons"
+  ],
+  "extends": "expo/tsconfig.base"
 }

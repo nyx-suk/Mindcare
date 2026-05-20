@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
@@ -11,13 +10,15 @@ import {
   TextInput,
 } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import AuthInput from '../components/AuthInput';
 import PrimaryButton from '../components/PrimaryButton';
-import { COLORS, SPACING, RADIUS } from '../theme/colors';
+import { SPACING, RADIUS, AppTheme } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
 import { setSecureCredentials } from '../store/authSlice';
 import apiClient from '../api/client';
-import { RootStackParamList } from './WelcomeScreen';
+import { RootStackParamList } from '../navigation/AppNavigator';
 import { AppDispatch } from '../store';
 
 type Props = StackScreenProps<RootStackParamList, 'Login'>;
@@ -25,6 +26,8 @@ type Props = StackScreenProps<RootStackParamList, 'Login'>;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginScreen({ navigation }: Props) {
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
   const dispatch = useDispatch<AppDispatch>();
   const passwordRef = useRef<TextInput>(null);
 
@@ -73,11 +76,9 @@ export default function LoginScreen({ navigation }: Props) {
 
       const { token, userId } = response.data;
       await dispatch(setSecureCredentials({ token, userId }));
-      console.log('Token dispatched:', token); // TODO: remove after debugging
-      // AppNavigator watches isAuthenticated — no manual navigation needed
+      console.log('Token dispatched:', token);
     } catch (error: any) {
       if (error.response) {
-        // Server responded with an error status
         const status = error.response.status;
         if (status === 401) {
           setApiError('Incorrect email or password');
@@ -90,7 +91,6 @@ export default function LoginScreen({ navigation }: Props) {
         error.message === 'Network Error' ||
         !error.response
       ) {
-        // No response at all — server is down or unreachable
         setApiError('Network error. Please check your connection.');
       } else {
         setApiError('An unexpected error occurred. Please try again.');
@@ -101,7 +101,7 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -111,7 +111,6 @@ export default function LoginScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Header */}
           <View style={styles.backButtonWrapper}>
             <TouchableOpacity
               onPress={() => navigation.navigate('Welcome')}
@@ -125,7 +124,6 @@ export default function LoginScreen({ navigation }: Props) {
           <Text style={styles.headline}>Welcome back</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
 
-          {/* Form */}
           <AuthInput
             label="Email"
             value={email}
@@ -164,7 +162,6 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
           )}
 
-          {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
@@ -173,14 +170,14 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (theme: AppTheme) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
   },
   keyboardView: {
     flex: 1,
@@ -197,20 +194,19 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     padding: SPACING.sm,
   },
-
   backArrow: {
     fontSize: 24,
-    color: COLORS.primary,
+    color: theme.primary,
   },
   headline: {
     fontSize: 30,
     fontWeight: '700',
-    color: COLORS.textPrimary,
+    color: theme.textPrimary,
     marginTop: SPACING.lg,
   },
   subtitle: {
     fontSize: 15,
-    color: COLORS.textSecondary,
+    color: theme.textSecondary,
     marginTop: SPACING.xs,
     marginBottom: SPACING.xl,
   },
@@ -222,14 +218,14 @@ const styles = StyleSheet.create({
   },
   errorCard: {
     marginTop: SPACING.md,
-    backgroundColor: COLORS.errorSurface,
+    backgroundColor: theme.errorSurface,
     borderRadius: RADIUS.card,
     padding: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.error,
+    borderColor: theme.error,
   },
   errorCardText: {
-    color: COLORS.error,
+    color: theme.error,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -243,11 +239,11 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: theme.textSecondary,
   },
   footerLink: {
     fontSize: 14,
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: '600',
   },
 });
