@@ -3,12 +3,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/useTheme';
 
+import HomeScreen from '../screens/HomeScreen';
 import AssessmentScreen from '../screens/AssessmentScreen';
 import MoodScreen from '../screens/MoodScreen';
 import HistoryScreen from '../screens/HistoryScreen';
-
-// Temporary placeholder for Phase 2
-const HomeScreen = () => null;
 
 export type TabParamList = {
     Home: undefined;

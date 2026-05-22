@@ -60,8 +60,10 @@ export default function HistoryScreen() {
     setError(null);
 
     try {
-      const response = await apiClient.get<AssessmentRecord[]>('/assessments/history?days=30');
-      setRecords(response.data.reverse()); // Ensure chronological if API returns desc
+      const response = await apiClient.get<any>('/assessments/history?days=30');
+      // Backend returns { items: [...] }, not an array directly
+      const assessmentItems = response.data.items || [];
+      setRecords(assessmentItems.reverse()); // Ensure chronological if API returns desc
 
       const moodRes = await apiClient.get<MoodRecord[]>('/mood/history?days=7');
       setMoodHistory(moodRes.data.reverse().slice(0, 7)); // limit to 7 chronological

@@ -80,6 +80,10 @@ export default function MoodScreen({ navigation }: any) {
       });
 
       setSuccessMessage('Mood logged! ✓');
+      setMoodScore(5);
+      setNote('');
+      setIsLoading(false);
+
       setTimeout(() => {
         navigation.goBack();
       }, 2000);

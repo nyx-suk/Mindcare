@@ -34,6 +34,11 @@ export default function AppNavigator() {
   const isAuthenticated = useSelector(
     (state: RootState) => state.auth.isAuthenticated && !!state.auth.token
   );
+  console.log('AppNavigator Auth State:', {
+    isAuthenticated,
+    actualToken: useSelector((state: RootState) => state.auth.token)
+  });
+
   const loading = useSelector((state: RootState) => state.auth.loading);
 
   useEffect(() => {
@@ -50,40 +55,42 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? (
-        // ── Authenticated stack ──────────────────────────────────────────────
-        <Stack.Navigator
-          screenOptions={{
-            contentStyle: { backgroundColor: '#0f1923' },
-            headerStyle: { backgroundColor: '#0f1923' },
-            headerTintColor: '#4db6ac',
-            headerTitleStyle: { fontWeight: '600' },
-          }}
-        >
-          <Stack.Screen
-            name="MainTabs"
-            component={TabNavigator}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Results"
-            component={ResultsScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      ) : (
-        // ── Unauthenticated stack ────────────────────────────────────────────
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-        </Stack.Navigator>
-      )}
+      <>
+        {isAuthenticated ? (
+          // ── Authenticated stack ──────────────────────────────────────────────
+          <Stack.Navigator
+            screenOptions={{
+              contentStyle: { backgroundColor: '#0f1923' },
+              headerStyle: { backgroundColor: '#0f1923' },
+              headerTintColor: '#4db6ac',
+              headerTitleStyle: { fontWeight: '600' },
+            }}
+          >
+            <Stack.Screen
+              name="MainTabs"
+              component={TabNavigator}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Results"
+              component={ResultsScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{ headerShown: false }}
+            />
+          </Stack.Navigator>
+        ) : (
+          // ── Unauthenticated stack ────────────────────────────────────────────
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Welcome" component={WelcomeScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
+          </Stack.Navigator>
+        )}
+      </>
     </NavigationContainer>
   );
 }
