@@ -28,7 +28,7 @@ export default function LoadingButton({
   return (
     <TouchableOpacity
       style={[styles.button, isDisabled && styles.disabled, style]}
-      onPress={onPress}
+      onPress={isDisabled ? () => {} : onPress}
       disabled={isDisabled}
       activeOpacity={0.7}
     >

@@ -24,6 +24,7 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://mindcare_user:mindcare_pass@postgres:5432/mindcare_db
+      - SECRET_KEY=local_dev_secret_key_change_in_production
     depends_on:
       - postgres
     command: >

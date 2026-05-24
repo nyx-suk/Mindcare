@@ -6,6 +6,7 @@
       "esnext",
       "dom"
     ],
+    "types": ["jest", "node"],
     "allowJs": true,
     "jsx": "react-native",
     "noEmit": true,

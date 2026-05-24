@@ -4,7 +4,8 @@
  */
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import AuthInput from '../../src/components/AuthInput';
+import { jest, expect, describe, it } from '@jest/globals';
+import AuthInput from '../components/AuthInput';
 
 describe('AuthInput', () => {
   const baseProps = {

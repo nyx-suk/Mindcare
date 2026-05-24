@@ -31,13 +31,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const dispatch = useDispatch<AppDispatch>();
+  const token = useSelector((state: RootState) => state.auth.token);
   const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated && !!state.auth.token
+    (state: RootState) => state.auth.isAuthenticated && !!token
   );
-  console.log('AppNavigator Auth State:', {
-    isAuthenticated,
-    actualToken: useSelector((state: RootState) => state.auth.token)
-  });
+  console.log('AppNavigator Auth State:', { isAuthenticated, token });
 
   const loading = useSelector((state: RootState) => state.auth.loading);
 

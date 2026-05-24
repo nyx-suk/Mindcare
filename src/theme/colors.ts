@@ -51,7 +51,7 @@ export const LIGHT_THEME: AppTheme = {
   textHint: '#b0bec5',
   border: '#d0e9e6',
   borderFocus: '#00897b',
-  error: '#e53935',
+  error: '#d32f2f',
   errorSurface: '#ffebee',
   warning: '#f57c00',
   warningSurface: '#fff3e0',

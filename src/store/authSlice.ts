@@ -44,7 +44,14 @@ export const setSecureCredentials = createAsyncThunk(
   'auth/setSecureCredentials',
   async (payload: { token: string; userId: number }) => {
     try {
-      await Keychain.setGenericPassword(payload.userId.toString(), payload.token);
+      const keychainPromise = Keychain.setGenericPassword(
+        payload.userId.toString(),
+        payload.token
+      );
+      const timeoutPromise = new Promise<void>((resolve) =>
+        setTimeout(() => resolve(), 3000)
+      );
+      await Promise.race([keychainPromise, timeoutPromise]);
     } catch (e) {
       // Keychain unavailable on emulator — continue anyway, state is still set
     }
@@ -57,7 +64,11 @@ export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async () => {
     try {
-      await Keychain.resetGenericPassword();
+      const keychainPromise = Keychain.resetGenericPassword();
+      const timeoutPromise = new Promise<void>((resolve) =>
+        setTimeout(() => resolve(), 3000)
+      );
+      await Promise.race([keychainPromise, timeoutPromise]);
     } catch (e) {
       // Keychain unavailable — continue
     }

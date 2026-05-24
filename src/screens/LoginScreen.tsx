@@ -75,7 +75,7 @@ export default function LoginScreen({ navigation }: Props) {
       });
 
       const { token, userId } = response.data;
-      await dispatch(setSecureCredentials({ token, userId }));
+      await dispatch(setSecureCredentials({ token, userId: Number(userId) }));
       console.log('Token dispatched:', token);
     } catch (error: any) {
       if (error.response) {
@@ -101,7 +101,7 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -113,7 +113,7 @@ export default function LoginScreen({ navigation }: Props) {
         >
           <View style={styles.backButtonWrapper}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Welcome')}
+              onPress={() => navigation.goBack()}
               style={styles.backButton}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
@@ -170,7 +170,7 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 

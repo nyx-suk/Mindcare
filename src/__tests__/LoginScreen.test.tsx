@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { jest, expect, describe, it } from '@jest/globals';
 import LoginScreen from '../../src/screens/LoginScreen';
 
 // Mock the Axios API client
@@ -15,13 +16,13 @@ jest.mock('../../src/api/client', () => ({
 
 // Mock react-native-keychain
 jest.mock('react-native-keychain', () => ({
-  setGenericPassword: jest.fn().mockResolvedValue(true),
-  getGenericPassword: jest.fn().mockResolvedValue(false),
-  resetGenericPassword: jest.fn().mockResolvedValue(true),
+  setGenericPassword: (jest.fn() as jest.Mock).mockResolvedValue(true),
+  getGenericPassword: (jest.fn() as jest.Mock).mockResolvedValue(false),
+  resetGenericPassword: (jest.fn() as jest.Mock).mockResolvedValue(true),
 }));
 
 // Mock Redux — avoids @reduxjs/toolkit ESM boundary in Jest 29 + Node 24
-const mockDispatch = jest.fn().mockResolvedValue({});
+const mockDispatch = (jest.fn() as jest.Mock).mockResolvedValue({});
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: () => null,
@@ -87,7 +88,7 @@ describe('LoginScreen — API error handling', () => {
   it('shows inline error on 401 response', async () => {
     (apiClient.post as jest.Mock).mockRejectedValueOnce({
       response: { status: 401 },
-    });
+    } as any);
     const { getByText, getByPlaceholderText } = render(
       <LoginScreen navigation={mockNavigation} route={mockRoute} />
     );
@@ -100,7 +101,7 @@ describe('LoginScreen — API error handling', () => {
   });
 
   it('shows network error when no response', async () => {
-    (apiClient.post as jest.Mock).mockRejectedValueOnce({});
+    (apiClient.post as jest.Mock).mockRejectedValueOnce({} as any);
     const { getByText, getByPlaceholderText } = render(
       <LoginScreen navigation={mockNavigation} route={mockRoute} />
     );
@@ -109,6 +110,23 @@ describe('LoginScreen — API error handling', () => {
     fireEvent.press(getByText('Sign In'));
     await waitFor(() => {
       expect(getByText('Network error. Please check your connection.')).toBeTruthy();
+    });
+  });
+
+  it('dispatches auth credentials on successful login', async () => {
+    (apiClient.post as jest.Mock).mockResolvedValueOnce({
+      data: { token: 'fake-jwt-token', userId: 123 },
+    });
+    const { getByText, getByPlaceholderText, queryByText } = render(
+      <LoginScreen navigation={mockNavigation} route={mockRoute} />
+    );
+    fireEvent.changeText(getByPlaceholderText('you@example.com'), 'test@example.com');
+    fireEvent.changeText(getByPlaceholderText('••••••••'), 'password123');
+    fireEvent.press(getByText('Sign In'));
+
+    await waitFor(() => {
+      expect(queryByText('Incorrect email or password')).toBeNull();
+      expect(mockDispatch).toHaveBeenCalled();
     });
   });
 });

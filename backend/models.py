@@ -33,7 +33,7 @@ class Assessment(Base):
     __tablename__ = 'assessments'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
     
     # Scores (0-27 scale for PHQ-9 and GAD-7)
     anxiety_score = Column(Float, nullable=False)
@@ -51,7 +51,7 @@ class Progress(Base):
     __tablename__ = 'progress'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False, index=True)
     
     # Mood tracking (1-10 scale)
     mood_score = Column(Integer, nullable=False)  # 1-10 scale

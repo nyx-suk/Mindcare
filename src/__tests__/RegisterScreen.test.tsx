@@ -13,12 +13,12 @@ jest.mock('../../src/api/client', () => ({
 }));
 
 jest.mock('react-native-keychain', () => ({
-  setGenericPassword: jest.fn().mockResolvedValue(true),
-  getGenericPassword: jest.fn().mockResolvedValue(false),
-  resetGenericPassword: jest.fn().mockResolvedValue(true),
+  setGenericPassword: jest.fn<any, any>().mockResolvedValue(true),
+  getGenericPassword: jest.fn<any, any>().mockResolvedValue(false),
+  resetGenericPassword: jest.fn<any, any>().mockResolvedValue(true),
 }));
 
-const mockDispatch = jest.fn().mockResolvedValue({});
+const mockDispatch = jest.fn<any, any>().mockResolvedValue({});
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: () => null,
@@ -97,7 +97,7 @@ describe('RegisterScreen — API error handling', () => {
   it('shows duplicate email error when API returns "already registered"', async () => {
     (apiClient.post as jest.Mock).mockRejectedValueOnce({
       response: { status: 400, data: { detail: 'Email already registered' } },
-    });
+    } as any);
     const { getByText, getAllByPlaceholderText, getByPlaceholderText } = render(
       <RegisterScreen navigation={mockNavigation} route={mockRoute} />
     );
@@ -110,6 +110,26 @@ describe('RegisterScreen — API error handling', () => {
       expect(
         getByText('An account with this email already exists. Try signing in.')
       ).toBeTruthy();
+    });
+  });
+
+  it('dispatches secure credentials on successful registration', async () => {
+    (apiClient.post as jest.Mock).mockResolvedValueOnce({
+      data: { token: 'new-token', userId: 456 },
+    });
+
+    const { getByText, getByPlaceholderText, getAllByPlaceholderText } = render(
+      <RegisterScreen navigation={mockNavigation} route={mockRoute} />
+    );
+
+    fireEvent.changeText(getByPlaceholderText('you@example.com'), 'newuser@example.com');
+    const passwordInputs = getAllByPlaceholderText('••••••••');
+    fireEvent.changeText(passwordInputs[0], 'Password1');
+    fireEvent.changeText(passwordInputs[1], 'Password1');
+    fireEvent.press(getByText('Create Account'));
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalled();
     });
   });
 });

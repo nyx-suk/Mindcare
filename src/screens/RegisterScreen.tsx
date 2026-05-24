@@ -102,7 +102,7 @@ export default function RegisterScreen({ navigation }: Props) {
       });
 
       const { token, userId } = response.data;
-      await dispatch(setSecureCredentials({ token, userId }));
+      await dispatch(setSecureCredentials({ token, userId: Number(userId) }));
       console.log('Token dispatched:', token);
     } catch (error: any) {
       if (error.response) {
@@ -146,7 +146,7 @@ export default function RegisterScreen({ navigation }: Props) {
         >
           <View style={styles.backButtonWrapper}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Welcome')}
+              onPress={() => navigation.goBack()}
               style={styles.backButton}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >

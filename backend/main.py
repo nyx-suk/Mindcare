@@ -62,7 +62,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         return user
-    except JWTError:
+    except (JWTError, ValueError):
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 # Pydantic Schemas

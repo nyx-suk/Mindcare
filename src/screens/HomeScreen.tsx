@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 
 import { useTheme } from '../hooks/useTheme';
 import { RootState } from '../store';
+import { setLatestScore } from '../store/assessmentSlice';
 import apiClient from '../api/client';
 import { TabParamList } from '../navigation/TabNavigator';
 import { SPACING, RADIUS } from '../theme/colors';
@@ -22,27 +23,44 @@ interface MoodLog {
 
 export default function HomeScreen({ navigation }: Props) {
     const { theme } = useTheme();
+    const dispatch = useDispatch();
     const latestScore = useSelector((state: RootState) => state.assessments.latestScore);
 
     const [moodHistory, setMoodHistory] = useState<MoodLog[]>([]);
     const [isLoadingMood, setIsLoadingMood] = useState(false);
 
     useEffect(() => {
-        // Fetch mood history
-        const fetchMood = async () => {
+        // Fetch mood history and latest assessment
+        const fetchData = async () => {
             setIsLoadingMood(true);
             try {
                 // fetching 14 days to compute "previous 7 days" accurately
-                const response = await apiClient.get('/mood/history?days=14');
-                setMoodHistory(response.data);
+                const moodResponse = await apiClient.get('/mood/history?days=14');
+                setMoodHistory(moodResponse.data);
             } catch (err) {
                 // Silently ignore errors as requested
             } finally {
                 setIsLoadingMood(false);
             }
+
+            try {
+                const assessmentResponse = await apiClient.get('/assessments/history?days=30');
+                const assessmentItems = assessmentResponse.data.items || [];
+                if (assessmentItems.length > 0) {
+                    // The last item in the ascending chronological list is the latest one
+                    const latest = assessmentItems[assessmentItems.length - 1];
+                    dispatch(setLatestScore({
+                        anxiety: latest.anxiety_score,
+                        depression: latest.depression_score,
+                        answers: []
+                    }));
+                }
+            } catch (err) {
+                // Silently ignore errors as requested
+            }
         };
-        fetchMood();
-    }, []);
+        fetchData();
+    }, [dispatch]);
 
     // Greeting Logic
     const hour = new Date().getHours();
